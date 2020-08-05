@@ -1,8 +1,7 @@
 
-Exercício GIT:
+### Exercício GIT:
 
-### Crie seu perfil no git hub
-
+* Crie seu perfil no git hub
 * Crie um repositório
 * Crie uma cópia local desse repositório
 * Crie um arquivo novo nesse repositório
