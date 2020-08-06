@@ -6,10 +6,14 @@
 * Crie uma cópia local desse repositório
 * Crie um arquivo novo nesse repositório
 * Atualize a versão remota do repositório
-* Crie uma issue simulando uma possível alteração a ser feita ou bug a ser corrigido
-* Crie uma branch do repositório
-* Faça uma alteração na branch
-* Sincronize a branch com a árvore Principal
-* Faça fork do repositório de um dos residentes
-* Crie um novo arquivo nesse repositório
-* Faça um pull request para o repositório
+
+Exercício pós-aula GIT (6-8-2020)
+
+* O que é Kanban?
+* Como é usado para auxiliar o processo de desenvolvimento de software?
+* O que é Github Project
+* Como Github Project pode auxiliar a implementar o modelo Kanban?
+* Simule um projeto e atividades de projeto com base no kanban utilizando Github Project
+* Faça uma apresentação dos resultados
+
+
