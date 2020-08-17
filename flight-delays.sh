@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
 
 source functions.sh
+atual=""
 
-while getopts ":dtn" opt; do
+function ler_companhia(){
+while IFS=, read -r sigla nome; do
+	aspas="\""
+	if [[ "$aspas$1$aspas" == $sigla ]] && [[ $atual != $nome ]]; then
+		echo "$nome"
+		atual="$nome"
+	fi
+done < carriers.csv
+}
+
+while getopts ":dtnc" opt; do
     case ${opt} in
         d ) # process option h
             shift # Removes de First Argument from the queue
@@ -20,7 +31,7 @@ while getopts ":dtn" opt; do
 	     echo "$2"
 	     contador_atrasos=0
 	     while IFS=, read -ra arr; do
-		if [[ ${arr[0]} -eq 2006 ]]; then
+		if [[ ${arr[0]} -eq $2 ]]; then
 			if [[ ${arr[14]} -gt 0 ]]; then
 				contador_atrasos=$(($contador_atrasos + 1))
 			fi
@@ -30,8 +41,19 @@ while getopts ":dtn" opt; do
 	     echo "$contador_atrasos"
 
 	;;
+	c ) # Atraso por Companhia aérea
+	     echo "$2"
+             while IFS=, read -ra arr; do
+                if [[ ${arr[0]} -eq $2 ]]; then
+                        if [[ ${arr[14]} -gt 0 ]]; then
+				ler_companhia ${arr[8]}
+			fi
+                fi
+             done < $2
+	;;
         \? ) echo "Usage: flight-delays.sh [-d] [-t]"
         ;;
   esac
 done
+
 
