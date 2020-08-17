@@ -41,7 +41,7 @@ function atrasos_por_aeroporto(){
         echo $aeroporto_mais_atrasos
 }
 
-
+#Feature 3
 function ler_companhia(){
 	#Realiza a leitura do arquivo carriers.csv linha por linha, atribuindo a primeira célula para a variável sigla, e a segunda célula para a variável nome
 	while IFS=, read -r sigla nome; do
@@ -59,7 +59,8 @@ function ler_companhia(){
         	        fi
 	        fi
 	done < carriers.csv
-
+	
+	#Feature .2
 	#imprime a leitura atual do dicionário de companhias e atrasos (somente para testes)
 	for key in ${!companhia[@]};do
         	echo "Companhia  = ${key}"
@@ -67,6 +68,7 @@ function ler_companhia(){
 	done
 }
 
+#Feature 4
 function ler_aeroporto(){
 	#Realiza a leitura do arquivo airports.csv linha por linha, atribuindo a primeira célula para a variável sigla, e a segunda célula para a variável nome, o restante ficará na variável cidade
 	while IFS=, read -r sigla nome cidade; do
@@ -81,6 +83,7 @@ function ler_aeroporto(){
 		fi
 	done < airports.csv
 
+	#Feature .1
 	for key in ${!aeroporto[@]};do
 		echo "Aeroporto  = ${key}"
 		echo "Atrasos = ${aeroporto[$key]}"
@@ -91,6 +94,7 @@ while getopts ":dtnca" opt; do
     case ${opt} in
         d ) # Download de datasets 
             shift 
+	    #Feature 1
             download_datasets $1
             test -f /2006.tar && echo "$FILE já descompactado."
 	    test -f /2007.tar && echo "$FILE já descompactado."
@@ -102,6 +106,7 @@ while getopts ":dtnca" opt; do
         t ) # process option t
         ;;
 	n ) # Listar atrasos por ano
+	     #Feature 2
 	     echo "$2"
 	     contador_atrasos=0
 	     #Realiza a leitura linha por linha do arquivo que o usuário decidir utilizar ($2) e armazena os valores separados por , para cada célula do array arr
