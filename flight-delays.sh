@@ -2,26 +2,46 @@
 
 source functions.sh
 atual=""
+declare -A companhia
+declare -A aeroporto
 
 function ler_companhia(){
 while IFS=, read -r sigla nome; do
 	aspas="\""
-	if [[ "$aspas$1$aspas" == $sigla ]] && [[ $atual != $nome ]]; then
-		echo "$nome"
-		atual="$nome"
-	fi
+        if [[ "$aspas$1$aspas" == $sigla ]]; then
+                if [ "${#companhia[@]}" -ne 0 ]; then
+                        companhia["$1"]=$((companhia["$1"] + 1))
+
+                else
+                        companhia["$1"]=1
+                fi
+        fi
 done < carriers.csv
+
+for key in ${!companhia[@]};do
+        echo "Companhia  = ${key}"
+        echo "Atrasos = ${companhia[$key]}"
+done
 }
 
 function ler_aeroporto(){
 
 while IFS=, read -r sigla nome cidade; do
         aspas="\""
-        if [[ "$aspas$1$aspas" == $sigla ]] && [[ $atual != $nome ]]; then
-                echo "$nome"
-                atual="$nome"
-        fi
+        if [[ "$aspas$1$aspas" == $sigla ]]; then
+		if [ "${#aeroporto[@]}" -ne 0 ]; then
+			aeroporto["$1"]=$((aeroporto["$1"] + 1))
+
+		else
+			aeroporto["$1"]=1
+		fi
+	fi
 done < airports.csv
+
+for key in ${!aeroporto[@]};do
+	echo "Aeroporto  = ${key}"
+	echo "Atrasos = ${aeroporto[$key]}"
+done
 
 }
 
