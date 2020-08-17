@@ -13,7 +13,19 @@ while IFS=, read -r sigla nome; do
 done < carriers.csv
 }
 
-while getopts ":dtnc" opt; do
+function ler_aeroporto(){
+
+while IFS=, read -r sigla nome cidade; do
+        aspas="\""
+        if [[ "$aspas$1$aspas" == $sigla ]] && [[ $atual != $nome ]]; then
+                echo "$nome"
+                atual="$nome"
+        fi
+done < airports.csv
+
+}
+
+while getopts ":dtnca" opt; do
     case ${opt} in
         d ) # process option h
             shift # Removes de First Argument from the queue
@@ -50,6 +62,16 @@ while getopts ":dtnc" opt; do
 			fi
                 fi
              done < $2
+	;;
+	a ) # Atraso por Aeropoto
+	    while IFS=, read -ra arr; do
+                if [[ ${arr[0]} -eq $2 ]]; then
+                        if [[ ${arr[14]} -gt 0 ]]; then
+                                ler_aeroporto ${arr[17]}
+                        fi
+                fi
+             done < $2
+
 	;;
         \? ) echo "Usage: flight-delays.sh [-d] [-t]"
         ;;
