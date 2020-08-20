@@ -4,8 +4,27 @@ source functions.sh
 atual=""
 declare -A companhia
 declare -A aeroporto
+declare -A aeroporto_cancelamentos
+declare -A num_atrasos_voo
+declare -A num_cancelamentos_voo
+declare -A tempo_atraso_voo
+declare -A num_atrasos_dia_semana
+declare -A tempo_atraso_dia_semana
+declare -A num_atrasos_dia_mes
+declare -A tempo_atraso_dia_mes
+
 companhia["teste"]=1
 aeroporto["teste"]=1
+aeroporto_cancelamentos["teste"]=1
+aeroporto_cancelamentos["teste2"]=1
+num_atrasos_voo[0]=1
+num_cancelamentos_voo[0]=1
+tempo_atraso_voo[0]=1
+num_atrasos_dia_semana[0]=1
+tempo_atraso_dia_semana[0]=1
+num_atrasos_dia_mes[0]=1
+tempo_atraso_dia_mes[0]=1
+
 
 #Feature .3
 function atrasos_por_companhia(){
@@ -39,6 +58,16 @@ function atrasos_por_aeroporto(){
 
         echo "O Aeroporto com mais atrasos foi:"
         echo $aeroporto_mais_atrasos
+
+				aeroporto_atual=""
+				aeroporto_mais_cancelamentos="teste"
+				for key in ${!aeroporto_cancelamentos[@]};do
+					if [[ ${aeroporto_cancelamentos[$key]} -gt ${aeroporto_cancelamentos[$aeroporto_mais_cancelamentos]} ]]; then
+						aeroporto_mais_cancelamentos=$key
+					fi
+				done
+
+				echo "O aeroporto com mais cancelamentos foi: $aeroporto_mais_cancelamentos com ${aeroporto_cancelamentos[$aeroporto_mais_cancelamentos]} cancelamentos"
 }
 
 #Feature 3
@@ -59,7 +88,7 @@ function ler_companhia(){
         	        fi
 	        fi
 	done < carriers.csv
-	
+
 	#Feature .2
 	#imprime a leitura atual do dicionário de companhias e atrasos (somente para testes)
 	for key in ${!companhia[@]};do
@@ -74,12 +103,23 @@ function ler_aeroporto(){
 	while IFS=, read -r sigla nome cidade; do
 	        #mesma lógica da função ler_companhia
 		aspas="\""
-	        if [[ "$aspas$1$aspas" == $sigla ]]; then
+	  if [[ "$aspas$1$aspas" == $sigla ]]; then
 			if [ "${#aeroporto[@]}" -ne 0 ]; then
 				aeroporto["$1"]=$((aeroporto["$1"] + 1))
 			else
 				aeroporto["$1"]=1
 			fi
+
+			if [ "${#aeroporto_cancelamentos[@]}" -ne 0 ]; then
+					if [ $2 -ne 0 ]; then
+						aeroporto_cancelamentos["$1"]=$((aeroporto_cancelamentos["$1"] + 1))
+					fi
+			else
+				if [ $2 -ne 0 ]; then
+					aeroporto_cancelamentos["$1"]=1
+				fi
+			fi
+
 		fi
 	done < airports.csv
 
@@ -90,10 +130,10 @@ function ler_aeroporto(){
 	done
 }
 
-while getopts ":dtnca" opt; do
+while getopts ":dtncavsm" opt; do
     case ${opt} in
-        d ) # Download de datasets 
-            shift 
+        d ) # Download de datasets
+            shift
 	    #Feature 1
             download_datasets $1
             test -f /2006.tar && echo "$FILE já descompactado."
@@ -152,8 +192,9 @@ while getopts ":dtnca" opt; do
                 if [[ ${arr[0]} -eq $2 ]]; then
                         if [[ ${arr[14]} -gt 0 ]]; then
                                 #chama a função ler_aeroporto passando por parâmetro a sigla do aeroporto com atraso
-				ler_aeroporto ${arr[17]}
+																ler_aeroporto ${arr[17]} ${arr[21]}
                         fi
+												ler_aeroporto ${arr[17]} ${arr[21]}
                 fi
 
 		#conta apenas 100 linhas (Para teste)
@@ -166,9 +207,134 @@ while getopts ":dtnca" opt; do
 	     #chama a função que verifica o número de atrasos_por_aeroporto
 	     atrasos_por_aeroporto
 	;;
+	v ) # Atraso por voo
+			while IFS=, read -ra arr; do
+								if [[ ${arr[0]} -eq $2 ]]; then
+												if [[ ${arr[14]} -gt 0 ]]; then
+													if [ "${#num_atrasos_voo[@]}" -ne 0 ]; then
+															num_atrasos_voo[${arr[9]}]=$((num_atrasos_voo[${arr[9]}] + 1))
+															tempo_atraso_voo[${arr[9]}]=$((tempo_atraso_voo[${arr[9]}] + ${arr[14]}))
+													else
+															num_atrasos_voo[${arr[9]}]=1
+															tempo_atraso_voo[${arr[9]}]=${arr[14]}
+													fi
+												fi
+												if [ "${#num_cancelamentos_voo[@]}" -ne 0 ]; then
+													num_cancelamentos_voo[${arr[9]}]=$((num_cancelamentos_voo[${arr[21]}] + 1))
+												else
+													num_cancelamentos_voo[${arr[9]}]=1
+												fi
+								fi
+
+		            #conta apenas 100 linhas (Para teste)
+								contador=$((contador + 1))
+								if [[ $contador -gt 100  ]];then
+												break
+								fi
+
+			done < $2
+
+			#Feature .5
+			maior=0
+			maior_media=0
+			for key in ${!num_atrasos_voo[@]};do
+				echo "Voo  = ${key}"
+				echo "Média de atraso = $((tempo_atraso_voo[$key] / num_atrasos_voo[$key]))"
+				media_atual=$((tempo_atraso_voo[$key] / num_atrasos_voo[$key]))
+				maior_media=$((tempo_atraso_voo[$maior] / num_atrasos_voo[$maior]))
+				if [[ media_atual -gt maior_media ]]; then
+					maior=$key
+				fi
+			done
+
+			echo "O voo com maior atraso em média foi: $maior com média de: $maior_media"
+
+			voo_mais_cancelamentos="teste"
+			for key in ${!num_cancelamentos_voo[@]};do
+				if [[ ${num_cancelamentos_voo[$key]} -gt ${num_cancelamentos_voo[$voo_mais_cancelamentos]} ]]; then
+					voo_mais_cancelamentos=$key
+				fi
+			done
+
+			echo "O voo com mais cancelamentos foi: $voo_mais_cancelamentos com ${num_cancelamentos_voo[$voo_mais_cancelamentos]} cancelamentos"
+
+	;;
+	s ) # Atraso por dia da semana
+
+	while IFS=, read -ra arr; do
+						if [[ ${arr[0]} -eq $2 ]]; then
+										if [[ ${arr[14]} -gt 0 ]]; then
+											if [ "${#num_atrasos_dia_semana[@]}" -ne 0 ]; then
+													num_atrasos_dia_semana[${arr[3]}]=$((num_atrasos_dia_semana[${arr[3]}] + 1))
+													tempo_atraso_dia_semana[${arr[3]}]=$((tempo_atraso_dia_semana[${arr[3]}] + ${arr[14]}))
+											else
+													num_atrasos_dia_semana[${arr[3]}]=1
+													tempo_atraso_dia_semana[${arr[3]}]=${arr[14]}
+											fi
+										fi
+						fi
+
+						#conta apenas 100 linhas (Para teste)
+						contador=$((contador + 1))
+						if [[ $contador -gt 100  ]];then
+										break
+						fi
+
+	done < $2
+
+	maior=0
+	maior_media=0
+	for key in ${!num_atrasos_dia_semana[@]};do
+		echo "Dia da semana  = ${key}"
+		echo "Média de atraso = $((tempo_atraso_dia_semana[$key] / num_atrasos_dia_semana[$key]))"
+		media_atual=$((tempo_atraso_dia_semana[$key] / num_atrasos_dia_semana[$key]))
+		maior_media=$((tempo_atraso_dia_semana[$maior] / num_atrasos_dia_semana[$maior]))
+		if [[ media_atual -gt maior_media ]]; then
+			maior=$key
+		fi
+	done
+
+	echo "O dia da semana com maior atraso em média foi: $maior com média de: $maior_media"
+	;;
+
+	m )
+
+		while IFS=, read -ra arr; do
+							if [[ ${arr[0]} -eq $2 ]]; then
+											if [[ ${arr[14]} -gt 0 ]]; then
+												if [ "${#num_atrasos_dia_semana[@]}" -ne 0 ]; then
+														num_atrasos_dia_mes[${arr[2]}]=$((num_atrasos_dia_mes[${arr[2]}] + 1))
+														tempo_atraso_dia_mes[${arr[2]}]=$((tempo_atraso_dia_mes[${arr[2]}] + ${arr[14]}))
+												else
+														num_atrasos_dia_mes[${arr[2]}]=1
+														tempo_atraso_dia_mes[${arr[2]}]=${arr[14]}
+												fi
+											fi
+							fi
+
+							#conta apenas 100 linhas (Para teste)
+							contador=$((contador + 1))
+							if [[ $contador -gt 100  ]];then
+											break
+							fi
+
+		done < $2
+
+		maior=0
+		maior_media=0
+		for key in ${!num_atrasos_dia_mes[@]};do
+			echo "Dia do Mês  = ${key}"
+			echo "Média de atraso = $((tempo_atraso_dia_mes[$key] / num_atrasos_dia_mes[$key]))"
+			media_atual=$((tempo_atraso_dia_mes[$key] / num_atrasos_dia_mes[$key]))
+			maior_media=$((tempo_atraso_dia_mes[$maior] / num_atrasos_dia_mes[$maior]))
+			if [[ media_atual -gt maior_media ]]; then
+				maior=$key
+			fi
+		done
+
+		echo "O dia do Mês com maior atraso em média foi: $maior com média de: $((tempo_atraso_dia_mes[$maior] / num_atrasos_dia_mes[$maior]))"
+	;;
         \? ) echo "Usage: flight-delays.sh [-d] [-t]"
         ;;
   esac
 done
-
-
